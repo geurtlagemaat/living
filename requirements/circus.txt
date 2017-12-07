@@ -1,0 +1,23 @@
+# Ensure entries in file are in the order in which they can be installed
+# manually! Since PIP does not yet work on all servers, we need to support
+# manual installation.
+setuptools==32.3.1
+six==1.10.0
+backports_abc==0.4
+backports.ssl_match_hostname==3.5.0.1
+iowait==0.2
+psutil==4.3.0
+pyzmq==15.4.0
+singledispatch==3.4.0.3
+certifi==2016.8.8
+tornado==4.4.1
+PyYAML==3.12
+circus==1.0.0ebv
+# Additional deps for circus-web:
+MarkupSafe==0.23
+Mako==1.0.4
+anyjson==0.3.3
+simplejson==3.8.2
+tornadIO2==0.0.3
+tomako==0.1.0.post1
+circus-web==master
