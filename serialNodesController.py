@@ -1,7 +1,7 @@
 from time import sleep
 
-from bliknetlib.serial_nodes_protocol import SerialNodesProtocol
-from bliknetlib.serial_msg import SerialMsg, SerialMessageSign, SerialMessageType
+from bliknetlib.serialNodesProtocol import SerialNodesProtocol
+from bliknetlib.serialMsg import serialMsg, serialMessageSign, serialMessageType
 from twisted.internet.serialport import SerialPort
 from twisted.internet import reactor, task
 import serial
@@ -33,17 +33,17 @@ class SerialNodesController(object):
 
     def doUpdateTemp(self, userdata, ToNode):
         myNodeID=self._NodeControl.nodeProps.get('system', 'nodeId')
-        mySetTempMsg = SerialMsg(FromAdress=int(myNodeID),
+        mySetTempMsg = serialMsg(FromAdress=int(myNodeID),
                                  ToAdress=int(ToNode),
                                  Function=int(60),
-                                 MsgType=SerialMessageSign.ENQ)
+                                 MsgType=serialMessageSign.ENQ)
         roundTemp = int(round(Decimal(userdata)))
         mySetTempMsg.DecPos=3
         if roundTemp>0:
-            mySetTempMsg.Sign=SerialMessageSign.POSITIVE
+            mySetTempMsg.Sign=serialMessageSign.POSITIVE
             mySetTempMsg.MsgValue = roundTemp
         else:
-            mySetTempMsg.Sign = SerialMessageSign.NEGATIVE
+            mySetTempMsg.Sign = serialMessageSign.NEGATIVE
             mySetTempMsg.MsgValue = -roundTemp
         self.SendMessage(mySetTempMsg.serialMsgToString())
 

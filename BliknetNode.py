@@ -4,7 +4,7 @@ import datetime
 from twisted.internet import reactor
 from twisted.internet import task
 
-from node_control import NodeControl
+from bliknetlib import nodeControl
 from serialNodesController import SerialNodesController
 import livingStatus
 import logging
@@ -17,7 +17,8 @@ def eUpdateLiving():
 
 def eUpdateNeoPixels(userdata):
     if oNodeControl.nodeProps.has_option('RGBNode', 'nodeId'):
-        mySerialNodesController.doUpdateTemp(userdata, oNodeControl.nodeProps.get('RGBNode', 'nodeId'))
+        # mySerialNodesController.doUpdateTemp(userdata, oNodeControl.nodeProps.get('RGBNode', 'nodeId'))
+        pass
     else:
         logger.info('No [RGBNode] nodeId setting not found, can not update RGB Strip')
 
@@ -42,10 +43,10 @@ def subscribeTopics():
 
 if __name__ == '__main__':
     now = datetime.datetime.now()
-    oNodeControl = NodeControl(r'settings/bliknetnode.conf')
+    oNodeControl = nodeControl.nodeControl(r'settings/bliknetnode.conf')
     logger.info("BliknetNode: %s starting at: %s." % (oNodeControl.nodeID, now))
 
-    mySerialNodesController = SerialNodesController(oNodeControl)
+    # mySerialNodesController = SerialNodesController(oNodeControl)
 
     # upload data task
     if oNodeControl.nodeProps.has_option('living', 'active') and \

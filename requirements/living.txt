@@ -1,7 +1,0 @@
-twisted==16.4.1
-pyserial==2.7
-Adafruit_DHT
-bliknetlib=>1.0.1
-paho-mqtt
-concurrentloghandler>=0.9.1
-astral
