@@ -1,12 +1,8 @@
 # -*- coding: utf-8 -*-
-import string
 import traceback
 from twisted.internet import reactor
 import Adafruit_DHT
-
-
-RAINTIPVOLUME = 0.2794
-STATIONELEVATION=8.7
+import serial
 
 def doUpdate(NodeControl):
     NodeControl.log.debug("Weather Status update")
@@ -21,7 +17,7 @@ def doUpdate(NodeControl):
             else:
                 NodeControl.log.warning("no reading: %s" % NodeControl.nodeProps.get('sensordata', 'GrondSensorPath'))
         else:
-            NodeControl.log.warning("Can not read buiten/grond, no [sensordata] GrondSensorPath configured")
+            NodeControl.log.warning("Can not read grondtemp., no [sensordata] GrondSensorPath configured")
 
         # DHT22
         if NodeControl.nodeProps.has_option('sensordata', 'DHT22Pin'):
@@ -31,10 +27,17 @@ def doUpdate(NodeControl):
                 NodeControl.log.warning("Error temp/hum status update, error: %s." % (traceback.format_exc()))
         else:
             NodeControl.log.warning("Can not read DHT sensor, no [sensordata] DHT22Pin configured")
-        # UV Index TODO
-
+        # CO2
+        if NodeControl.nodeProps.has_option('sensordata', 'co2port'):
+            try:
+                getCO2(NodeControl, NodeControl.nodeProps.get('sensordata', 'co2port'))
+            except Exception, exp:
+                NodeControl.log.warning("Error reading sensor, path: %s, error: %s." %\
+                                        (NodeControl.nodeProps.get('sensordata', 'co2port'), traceback.format_exc()))
+        else:
+            NodeControl.log.info("CO2 sensor path ([sensordata] co2port) not found in settings")
     except Exception, exp:
-        NodeControl.log.warning("Error weather status update, error: %s." % (traceback.format_exc()))
+        NodeControl.log.warning("Error status update, error: %s." % (traceback.format_exc()))
 
 def getDHT22Data(NodeControl, Pin, iTry):
     sensor = Adafruit_DHT.DHT22
@@ -70,8 +73,29 @@ def getDS18B20Temp(NodeControl, sSensorPath):
         NodeControl.log.warning("Error reading sensor, path: %s, error: %s." % (sSensorPath, traceback.format_exc()))
         return None
 
+def getCO2(NodeControl, sensorPort):
+    """
+    publisch CO2 value using mh_z19 sensor
+    http://eleparts.co.kr/data/design/product_file/SENSOR/gas/MH-Z19_CO2%20Manual%20V2.pdf
+    http://qiita.com/UedaTakeyuki/items/c5226960a7328155635f
+    """
+    ser = serial.Serial(sensorPort,
+                          baudrate=9600,
+                          bytesize=serial.EIGHTBITS,
+                          parity=serial.PARITY_NONE,
+                          stopbits=serial.STOPBITS_ONE,
+                          timeout=1.0)
+    while 1:
+        result=ser.write("\xff\x01\x86\x00\x00\x00\x00\x00\x79")
+        s=ser.read(9)
+        if s[0] == "\xff" and s[1] == "\x86":
+            # return {'co2': ord(s[2])*256 + ord(s[3])}
+            NodeControl.MQTTPublish(sTopic="living/co2", sValue=str(ord(s[2])*256 + ord(s[3])), iQOS=0, bRetain=True)
+        break
+
+
+
 def checkDevices():
     # TODO
     # checks if all devices are found (does NOT check valid readings)
-
     allDevicesFound = False
