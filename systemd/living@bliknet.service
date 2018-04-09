@@ -1,0 +1,13 @@
+[Unit]
+Description=Bliknet Living App
+After=network-online.target
+
+[Service]
+Type=simple
+User=%i
+Restart=on-failure
+WorkingDirectory=/opt/bliknet/living/app/
+ExecStart=/opt/bliknet/living/virtualenv/bin/python /opt/bliknet/garage/living/BliknetNode.py
+
+[Install]
+WantedBy=multi-user.target

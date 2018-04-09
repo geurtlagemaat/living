@@ -76,8 +76,6 @@ def getDS18B20Temp(NodeControl, sSensorPath):
 def getCO2(NodeControl, sensorPort):
     """
     publisch CO2 value using mh_z19 sensor
-    http://eleparts.co.kr/data/design/product_file/SENSOR/gas/MH-Z19_CO2%20Manual%20V2.pdf
-    http://qiita.com/UedaTakeyuki/items/c5226960a7328155635f
     """
     ser = serial.Serial(sensorPort,
                           baudrate=9600,
@@ -89,7 +87,6 @@ def getCO2(NodeControl, sensorPort):
         result=ser.write("\xff\x01\x86\x00\x00\x00\x00\x00\x79")
         s=ser.read(9)
         if s[0] == "\xff" and s[1] == "\x86":
-            # return {'co2': ord(s[2])*256 + ord(s[3])}
             NodeControl.MQTTPublish(sTopic="living/co2", sValue=str(ord(s[2])*256 + ord(s[3])), iQOS=0, bRetain=True)
         break
 
