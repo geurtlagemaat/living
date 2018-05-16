@@ -7,7 +7,7 @@ Type=simple
 User=%i
 Restart=on-failure
 WorkingDirectory=/opt/bliknet/living/app/
-ExecStart=/opt/bliknet/living/virtualenv/bin/python /opt/bliknet/garage/living/BliknetNode.py
+ExecStart=/opt/bliknet/living/virtualenv/bin/python /opt/bliknet/living/BliknetNode.py
 
 [Install]
 WantedBy=multi-user.target

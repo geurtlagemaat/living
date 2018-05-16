@@ -37,7 +37,7 @@ def subscribeTopics():
     if oNodeControl.mqttClient is not None:
         oNodeControl.mqttClient.on_subscribe = onMQTTSubscribe
         oNodeControl.mqttClient.subscribe("woonkamer/updatecmd", 0);
-        oNodeControl.mqttClient.subscribe("weer/temp", 0);
+        # oNodeControl.mqttClient.subscribe("weer/temp", 0);
         oNodeControl.mqttClient.on_message = onMQTTMessage
         oNodeControl.mqttClient.loop_start()
 
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     oNodeControl = nodeControl.nodeControl(r'settings/bliknetnode.conf')
     logger.info("BliknetNode: %s starting at: %s." % (oNodeControl.nodeID, now))
 
-    # mySerialNodesController = SerialNodesController(oNodeControl)
+    mySerialNodesController = SerialNodesController(oNodeControl)
 
     # upload data task
     if oNodeControl.nodeProps.has_option('living', 'active') and \

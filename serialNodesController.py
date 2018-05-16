@@ -1,3 +1,4 @@
+import traceback
 from time import sleep
 
 from bliknetlib.serialNodesProtocol import SerialNodesProtocol
@@ -19,33 +20,41 @@ class SerialNodesController(object):
     def _connectSerialPort(self):
         self.Close()
         myProtocol = SerialNodesProtocol(self._NodeControl, OnReceive=self.OnMsgReceive)
-        self._serialPort = SerialPort(myProtocol, self._NodeControl.nodeProps.get('serialnodes', 'serialport'),
-                                      reactor,
-                                      baudrate=9600,
-                                      bytesize=serial.EIGHTBITS,
-                                      parity=serial.PARITY_NONE)
+        try:
+            self._serialPort = SerialPort(myProtocol, self._NodeControl.nodeProps.get('serialnodes', 'serialport'),
+                                          reactor,
+                                          baudrate=9600,
+                                          bytesize=serial.EIGHTBITS,
+                                          parity=serial.PARITY_NONE)
+        except Exception, exp:
+            self._NodeControl.log.error("_connectSerialPort: %s." % traceback.format_exc())
+
         sleep(1)
 
     def OnMsgReceive(self, RecMsg):
         myNodeID = self._NodeControl.nodeProps.get('system', 'nodeId')
         if str(RecMsg.ToAdress) == myNodeID:
             self._NodeControl.log("Msg for me: %s" % RecMsg)
-
-    def doUpdateTemp(self, userdata, ToNode):
-        myNodeID=self._NodeControl.nodeProps.get('system', 'nodeId')
-        mySetTempMsg = serialMsg(FromAdress=int(myNodeID),
-                                 ToAdress=int(ToNode),
-                                 Function=int(60),
-                                 MsgType=serialMessageSign.ENQ)
-        roundTemp = int(round(Decimal(userdata)))
-        mySetTempMsg.DecPos=3
-        if roundTemp>0:
-            mySetTempMsg.Sign=serialMessageSign.POSITIVE
-            mySetTempMsg.MsgValue = roundTemp
-        else:
-            mySetTempMsg.Sign = serialMessageSign.NEGATIVE
-            mySetTempMsg.MsgValue = -roundTemp
-        self.SendMessage(mySetTempMsg.serialMsgToString())
+            if int(RecMsg.Function) == 23:
+                # Living concentrationPM25
+                concentrationPM25 = '{:.1f}'.format(RecMsg.MsgValue)
+                self._NodeControl.MQTTPublish(sTopic="living/concentrationPM25", sValue=concentrationPM25, iQOS=0, bRetain=False)
+            elif int(RecMsg.Function) == 24:
+                # Living concentrationPM10
+                concentrationPM10 = '{:.1f}'.format(RecMsg.MsgValue)
+                self._NodeControl.MQTTPublish(sTopic="living/concentrationPM10", sValue=concentrationPM10, iQOS=0, bRetain=False)
+            elif int(RecMsg.Function) == 25:
+                # Living AqiPM25
+                AqiPM25 = '{:.1f}'.format(RecMsg.MsgValue)
+                self._NodeControl.MQTTPublish(sTopic="living/AqiPM25", sValue=AqiPM25, iQOS=0, bRetain=False)
+            elif int(RecMsg.Function) == 26:
+                # Living AqiPM10
+                AqiPM10 = '{:.1f}'.format(RecMsg.MsgValue)
+                self._NodeControl.MQTTPublish(sTopic="living/AqiPM25", sValue=AqiPM10, iQOS=0, bRetain=False)
+            elif int(RecMsg.Function) == 27:
+                # Living AqiPM10
+                AQI = '{:.1f}'.format(RecMsg.MsgValue)
+                self._NodeControl.MQTTPublish(sTopic="living/AQI", sValue=AQI, iQOS=0, bRetain=False)
 
     def SendMessage(self, serialMessage):
         try:
