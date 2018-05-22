@@ -1,13 +1,13 @@
-import traceback
+# import traceback
 from time import sleep
 
 from bliknetlib.serialNodesProtocol import SerialNodesProtocol
-from bliknetlib.serialMsg import serialMsg, serialMessageSign, serialMessageType
+# from bliknetlib.serialMsg import serialMsg, serialMessageSign, serialMessageType
 from twisted.internet.serialport import SerialPort
 from twisted.internet import reactor, task
 import serial
 
-from decimal import Decimal
+# from decimal import Decimal
 
 import logging
 logger = logging.getLogger(__name__)
@@ -26,34 +26,35 @@ class SerialNodesController(object):
                                           baudrate=9600,
                                           bytesize=serial.EIGHTBITS,
                                           parity=serial.PARITY_NONE)
-        except Exception, exp:
-            self._NodeControl.log.error("_connectSerialPort: %s." % traceback.format_exc())
+        except Exception:
+            # self._NodeControl.log.error("_connectSerialPort: %s." % traceback.format_exc())
+            logger.error("_connectSerialPort error.", exc_info=True)
 
         sleep(1)
 
     def OnMsgReceive(self, RecMsg):
         myNodeID = self._NodeControl.nodeProps.get('system', 'nodeId')
         if str(RecMsg.ToAdress) == myNodeID:
-            self._NodeControl.log("Msg for me: %s" % RecMsg)
+            logger.info("Msg for me: %s" % RecMsg)
             if int(RecMsg.Function) == 23:
                 # Living concentrationPM25
-                concentrationPM25 = '{:.1f}'.format(RecMsg.MsgValue)
+                concentrationPM25 = '{:.1f}'.format(float(RecMsg.MsgValue))
                 self._NodeControl.MQTTPublish(sTopic="living/concentrationPM25", sValue=concentrationPM25, iQOS=0, bRetain=False)
             elif int(RecMsg.Function) == 24:
                 # Living concentrationPM10
-                concentrationPM10 = '{:.1f}'.format(RecMsg.MsgValue)
+                concentrationPM10 = '{:.1f}'.format(float(RecMsg.MsgValue))
                 self._NodeControl.MQTTPublish(sTopic="living/concentrationPM10", sValue=concentrationPM10, iQOS=0, bRetain=False)
             elif int(RecMsg.Function) == 25:
                 # Living AqiPM25
-                AqiPM25 = '{:.1f}'.format(RecMsg.MsgValue)
+                AqiPM25 = RecMsg.MsgValue # '{:.1f}'.format(RecMsg.MsgValue)
                 self._NodeControl.MQTTPublish(sTopic="living/AqiPM25", sValue=AqiPM25, iQOS=0, bRetain=False)
             elif int(RecMsg.Function) == 26:
                 # Living AqiPM10
-                AqiPM10 = '{:.1f}'.format(RecMsg.MsgValue)
+                AqiPM10 = RecMsg.MsgValue # '{:.1f}'.format(RecMsg.MsgValue)
                 self._NodeControl.MQTTPublish(sTopic="living/AqiPM25", sValue=AqiPM10, iQOS=0, bRetain=False)
             elif int(RecMsg.Function) == 27:
-                # Living AqiPM10
-                AQI = '{:.1f}'.format(RecMsg.MsgValue)
+                # Living Aqi
+                AQI = RecMsg.MsgValue # '{:.1f}'.format(RecMsg.MsgValue)
                 self._NodeControl.MQTTPublish(sTopic="living/AQI", sValue=AQI, iQOS=0, bRetain=False)
 
     def SendMessage(self, serialMessage):
